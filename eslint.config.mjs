@@ -16,7 +16,8 @@ export default [
     files: [
       '**/node_modules/**',
       '**/build/**',
-      '**/dist/**',
+      '**/husky/**',
+      '.github/**',
       '*.config.js',
       '*.config.mjs',
     ],
