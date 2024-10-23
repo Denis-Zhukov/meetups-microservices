@@ -14,9 +14,10 @@ export default [
   },
   {
     files: [
+      'node_modules/**',
       '**/node_modules/**',
       '**/build/**',
-      '**/husky/**',
+      '.husky/**',
       '.github/**',
       '*.config.js',
       '*.config.mjs',
