@@ -1,3 +1,4 @@
+import { LoggerService } from '../logger/logger.service';
 import {
   HttpException,
   HttpStatus,
@@ -11,7 +12,6 @@ import { ConfigService } from '@nestjs/config';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { hash, genSalt, compare } from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
-import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
 export class AuthService {
