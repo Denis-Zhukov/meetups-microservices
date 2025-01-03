@@ -4,17 +4,8 @@ import tseslint from 'typescript-eslint';
 
 export default [
   {
-    files: ['**/*.{js,mjs,cjs,ts}'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        module: 'readonly',
-      },
-    },
-  },
-  {
-    files: [
-      'node_modules/**',
+    ignores: [
+      'packages/**/dist/',
       '**/node_modules/**',
       '**/build/**',
       '.husky/**',
@@ -22,7 +13,15 @@ export default [
       '*.config.js',
       '*.config.mjs',
     ],
-    rules: { 'no-undef': 'off' },
+  },
+  {
+    files: ['**/*.{js,mjs,cjs,ts}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        module: 'readonly',
+      },
+    },
   },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
