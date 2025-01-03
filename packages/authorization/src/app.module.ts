@@ -1,10 +1,23 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { EnvConfig } from '../types';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      validate: (config: EnvConfig) => ({
+        ...config,
+        ACCESS_JWT_EXPIRE_IN: Number(config['ACCESS_JWT_EXPIRE_IN']),
+        REFRESH_JWT_EXPIRE_IN: Number(config['REFRESH_JWT_EXPIRE_IN']),
+      }),
+    }),
+    AuthModule,
+    LoggerModule,
+  ],
+  controllers: [],
 })
 export class AppModule {}
