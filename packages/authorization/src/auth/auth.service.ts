@@ -14,7 +14,6 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
-@Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaClient,
@@ -103,6 +102,7 @@ export class AuthService {
     }
 
     this.logger.log(`User ${email} logged in successfully.`);
+
     return this.generateAndStoreTokens(user.id);
   }
 
@@ -116,6 +116,7 @@ export class AuthService {
     });
 
     this.logger.log(`User authorized with email: ${email}`);
+
     return this.generateAndStoreTokens(id);
   }
 
@@ -132,6 +133,7 @@ export class AuthService {
       return this.generateAndStoreTokens(id);
     } catch (error) {
       this.logger.error('Error refreshing token', error.stack);
+
       throw new UnauthorizedException();
     }
   }
