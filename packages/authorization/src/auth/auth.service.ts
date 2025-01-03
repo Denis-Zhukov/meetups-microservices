@@ -11,13 +11,15 @@ import { ConfigService } from '@nestjs/config';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { hash, genSalt, compare } from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
+import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly jwtService: JwtService,
-    private readonly cfgService: ConfigService<EnvConfig>
+    private readonly cfgService: ConfigService<EnvConfig>,
+    private readonly logger: LoggerService
   ) {}
 
   private async generateAndStoreTokens(id: number) {
@@ -50,19 +52,28 @@ export class AuthService {
     const passwordHash = await hash(password, salt);
 
     try {
-      return await this.prisma.user.create({
+      const user = await this.prisma.user.create({
         data: {
           email,
           passwordHash,
         },
       });
+      this.logger.log(`User created with email: ${email}`);
+      return user;
     } catch (error) {
       if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+        this.logger.warn(
+          `Attempt to create user with duplicate email: ${email}`
+        );
         throw new HttpException(
           'User with this email already exists',
           HttpStatus.BAD_REQUEST
         );
       }
+      this.logger.error(
+        `Error creating user with email: ${email}`,
+        error.stack
+      );
       throw error;
     }
   }
@@ -70,12 +81,27 @@ export class AuthService {
   public async login({ email, password }: LoginUserDto) {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
-    if (!user || !(await compare(password, user.passwordHash))) {
+    if (!user) {
+      this.logger.warn(
+        `Failed login attempt: User with email ${email} not found.`
+      );
       throw new HttpException(
         'Email or password are incorrect',
         HttpStatus.BAD_REQUEST
       );
     }
+
+    if (!(await compare(password, user.passwordHash))) {
+      this.logger.warn(
+        `Failed login attempt: Incorrect password for email ${email}.`
+      );
+      throw new HttpException(
+        'Email or password are incorrect',
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    this.logger.log(`User ${email} logged in successfully.`);
 
     return this.generateAndStoreTokens(user.id);
   }
@@ -89,6 +115,8 @@ export class AuthService {
       update: {},
     });
 
+    this.logger.log(`User authorized with email: ${email}`);
+
     return this.generateAndStoreTokens(id);
   }
 
@@ -101,8 +129,11 @@ export class AuthService {
         }
       );
 
+      this.logger.log(`Token refreshed for user with ID: ${id}`);
       return this.generateAndStoreTokens(id);
-    } catch {
+    } catch (error) {
+      this.logger.error('Error refreshing token', error.stack);
+
       throw new UnauthorizedException();
     }
   }

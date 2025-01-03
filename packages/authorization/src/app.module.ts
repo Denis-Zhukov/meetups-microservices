@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { EnvConfig } from '../types';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -15,8 +16,8 @@ import { EnvConfig } from '../types';
       }),
     }),
     AuthModule,
+    LoggerModule,
   ],
   controllers: [],
-  providers: [],
 })
 export class AppModule {}

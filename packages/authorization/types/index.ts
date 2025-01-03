@@ -9,6 +9,8 @@ export type EnvConfig = {
 
   ACCESS_JWT_EXPIRE_IN: number;
   REFRESH_JWT_EXPIRE_IN: number;
+
+  ELASTIC_HOST: string;
 };
 
 export type OAuthPayload = {
