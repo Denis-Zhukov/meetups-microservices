@@ -11,6 +11,7 @@ export type EnvConfig = {
   REFRESH_JWT_EXPIRE_IN: number;
 
   ELASTIC_HOST: string;
+  RABBITMQ_HOST: string;
 };
 
 export type OAuthPayload = {
