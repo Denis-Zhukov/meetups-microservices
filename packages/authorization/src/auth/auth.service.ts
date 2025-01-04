@@ -22,7 +22,7 @@ export class AuthService {
     private readonly logger: LoggerService
   ) {}
 
-  private async generateAndStoreTokens(id: number) {
+  private async generateAndStoreTokens(id: string) {
     const accessToken = await this.jwtService.signAsync(
       { id },
       {
