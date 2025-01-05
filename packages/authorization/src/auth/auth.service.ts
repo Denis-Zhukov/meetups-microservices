@@ -1,4 +1,4 @@
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '@/logger/logger.service';
 import {
   HttpException,
   HttpStatus,
@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
-import { EnvConfig, JwtPayload, OAuthPayload } from '../../types';
+import { EnvConfig, JwtPayload, OAuthPayload } from '@/common/types';
 import { ConfigService } from '@nestjs/config';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { hash, genSalt, compare } from 'bcrypt';

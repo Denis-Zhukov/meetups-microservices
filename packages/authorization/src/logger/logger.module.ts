@@ -3,7 +3,7 @@ import { LoggerService } from './logger.service';
 import { ConfigService } from '@nestjs/config';
 import { createLogger, format, Logger, transports } from 'winston';
 import { ElasticsearchTransport } from 'winston-elasticsearch';
-import { EnvConfig } from '../../types';
+import { EnvConfig } from '@/common/types';
 
 @Module({
   imports: [],

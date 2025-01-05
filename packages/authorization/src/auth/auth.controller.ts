@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { GoogleOAuthGuard } from './guards/google-o-auth-guard.service';
 import { AuthService } from './auth.service';
-import { EnvConfig, OAuthPayload } from '../../types';
-import { User } from '../decorators/user.decarator';
+import { EnvConfig, OAuthPayload } from '@/common/types';
+import { User } from '@/common/decorators/user.decarator';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ConfigService } from '@nestjs/config';

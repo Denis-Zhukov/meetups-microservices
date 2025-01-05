@@ -3,7 +3,7 @@ CREATE TYPE "InvitationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED');
 
 -- CreateTable
 CREATE TABLE "meetups" (
-    "id" SERIAL NOT NULL,
+    "id" TEXT NOT NULL,
     "creator" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -19,9 +19,9 @@ CREATE TABLE "meetups" (
 
 -- CreateTable
 CREATE TABLE "invitees" (
-    "id" SERIAL NOT NULL,
-    "meetupId" INTEGER NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "id" TEXT NOT NULL,
+    "meetupId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
     "status" "InvitationStatus" NOT NULL,
 
     CONSTRAINT "invitees_pkey" PRIMARY KEY ("id")
