@@ -31,5 +31,5 @@ export type GoogleProfile = {
 };
 
 export type JwtPayload = {
-  id: number;
+  id: string;
 };

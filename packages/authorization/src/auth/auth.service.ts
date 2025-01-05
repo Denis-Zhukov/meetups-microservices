@@ -22,7 +22,7 @@ export class AuthService {
     private readonly logger: LoggerService
   ) {}
 
-  private async generateAndStoreTokens(id: number) {
+  private async generateAndStoreTokens(id: string) {
     const accessToken = await this.jwtService.signAsync(
       { id },
       {
@@ -108,16 +108,23 @@ export class AuthService {
 
   public async authorize(payload: OAuthPayload) {
     const { email } = payload;
+    try {
+      const { id } = await this.prisma.user.upsert({
+        where: { email },
+        create: { email },
+        update: {},
+      });
 
-    const { id } = await this.prisma.user.upsert({
-      where: { email },
-      create: { email },
-      update: {},
-    });
+      this.logger.log(`User authorized with email: ${email}`);
 
-    this.logger.log(`User authorized with email: ${email}`);
-
-    return this.generateAndStoreTokens(id);
+      return this.generateAndStoreTokens(id);
+    } catch (error) {
+      this.logger.error(
+        `Error creating user with email: ${email}`,
+        error.stack
+      );
+      throw error;
+    }
   }
 
   public async refreshToken(refreshToken: string) {

@@ -14,22 +14,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id      String  @id @default(cuid())
-  email   String  @unique
-  name    String?
-  surname String?
-  avatar  String?
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
 
-  passwordHash String? @map("password_hash")
-  refreshToken String? @map("refresh_token")
-
-  verified   Boolean @default(false)
-  verifyHash String? @map("verify_hash")
+model Meetup {
+  id          String   @id @default(cuid())
+  creator     Int
+  name        String
+  description String
+  tags        String[]
+  place       String
+  start       DateTime
+  end         DateTime
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([email], type: BTree)
-  @@map("users")
+  invitees Invitee[]
+
+  @@map("meetups")
+}
+
+model Invitee {
+  id       String           @id @default(cuid())
+  meetupId String
+  userId   String
+  status   InvitationStatus
+
+  meetup Meetup @relation(fields: [meetupId], references: [id])
+
+  @@map("invitees")
 }
