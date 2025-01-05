@@ -21,7 +21,7 @@ services:
     environment:
       POSTGRES_USER: ${AUTH_DB_USER}
       POSTGRES_PASSWORD: ${AUTH_DB_PASS}
-      POSTGRES_DB: auth
+      POSTGRES_DB: ${AUTH_DB}
     ports:
       - '5432:5432'
     volumes:
@@ -52,7 +52,7 @@ services:
     environment:
       POSTGRES_USER: ${MEETUP_DB_USER}
       POSTGRES_PASSWORD: ${MEETUP_DB_PASS}
-      POSTGRES_DB: meetup
+      POSTGRES_DB: ${MEETUP_DB}
     ports:
       - '5433:5432'
     volumes:
