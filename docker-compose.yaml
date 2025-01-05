@@ -84,6 +84,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - auth
+      - meetup
 
   elasticsearch:
     image: elasticsearch:7.17.26

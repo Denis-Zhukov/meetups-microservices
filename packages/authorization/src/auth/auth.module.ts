@@ -5,7 +5,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { AuthService } from './auth.service';
 import { PrismaClient } from '@prisma/client';
 import { JwtModule } from '@nestjs/jwt';
-import { LoggerModule } from '../logger/logger.module';
+import { LoggerModule } from '@/logger/logger.module';
 
 @Module({
   imports: [JwtModule.register({}), LoggerModule],

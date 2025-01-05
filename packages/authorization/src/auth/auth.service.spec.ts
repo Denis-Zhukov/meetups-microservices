@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { LoggerService } from '../logger/logger.service';
+import { LoggerService } from '@/logger/logger.service';
 import { PrismaClient } from '@prisma/client';
 
 describe('AuthService', () => {

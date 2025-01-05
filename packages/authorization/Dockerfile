@@ -19,4 +19,4 @@ RUN apt-get update -y && apt-get install -y openssl
 
 EXPOSE 3000
 
-CMD [ "node", "dist/src/main.js" ]
+CMD [ "node", "dist/main.js" ]
