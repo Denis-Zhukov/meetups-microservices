@@ -6,7 +6,9 @@
   "main": "index.js",
   "scripts": {
     "format": "eslint --fix . && prettier --write .",
-    "lint": "eslint . && prettier --check ."
+    "lint": "eslint . && prettier --check .",
+    "precommit": "eslint .",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": "",
