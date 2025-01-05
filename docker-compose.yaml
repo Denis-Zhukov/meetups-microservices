@@ -1,4 +1,20 @@
 services:
+  auth_service:
+    build:
+      context: .
+      dockerfile: packages/authorization/Dockerfile
+    ports:
+      - '3000:3000'
+    depends_on:
+      - auth_db
+      - rabbitmq
+      - elasticsearch
+    env_file:
+      - ./packages/authorization/.env
+    networks:
+      - auth
+      - elk
+
   auth_db:
     image: postgres:14
     restart: always
@@ -10,6 +26,25 @@ services:
       - '5432:5432'
     volumes:
       - auth_data:/var/lib/postgresql/data
+    networks:
+      - auth
+      - pg
+
+  meetup_service:
+    build:
+      context: .
+      dockerfile: packages/meetups/Dockerfile
+    ports:
+      - '3001:3001'
+    depends_on:
+      - meetup_db
+      - rabbitmq
+      - elasticsearch
+    env_file:
+      - ./packages/meetups/.env
+    networks:
+      - meetup
+      - elk
 
   meetup_db:
     image: postgres:14
@@ -22,6 +57,9 @@ services:
       - '5433:5432'
     volumes:
       - meetup_data:/var/lib/postgresql/data
+    networks:
+      - meetup
+      - pg
 
   pgadmin:
     image: dpage/pgadmin4
@@ -33,6 +71,8 @@ services:
       - '8080:80'
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - pg
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -42,6 +82,8 @@ services:
       - '15672:15672'
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - auth
 
   elasticsearch:
     image: elasticsearch:7.17.26
@@ -80,3 +122,6 @@ volumes:
 
 networks:
   elk:
+  auth:
+  meetup:
+  pg:
