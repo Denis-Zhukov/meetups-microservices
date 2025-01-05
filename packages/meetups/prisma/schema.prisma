@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -39,8 +40,8 @@ model Meetup {
 
 model Invitee {
   id       String           @id @default(cuid())
-  meetupId Int
-  userId   Int
+  meetupId String
+  userId   String
   status   InvitationStatus
 
   meetup Meetup @relation(fields: [meetupId], references: [id])
