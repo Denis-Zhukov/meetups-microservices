@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { EnvConfig } from './common/types';
 import { LoggerModule } from './logger/logger.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { LoggerModule } from './logger/logger.module';
     }),
     AuthModule,
     LoggerModule,
+    ProfileModule,
   ],
   controllers: [],
   providers: [],
