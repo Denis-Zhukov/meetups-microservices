@@ -11,6 +11,8 @@ services:
       - elasticsearch
     env_file:
       - ./packages/authorization/.env
+    volumes:
+      - avatar-storage:/app/uploads
     networks:
       - auth
       - elk
@@ -126,3 +128,4 @@ networks:
   auth:
   meetup:
   pg:
+  avatar-storage:
