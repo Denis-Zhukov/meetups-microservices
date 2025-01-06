@@ -16,10 +16,25 @@ export class ProfileService {
 
   async setAvatar(id: string, file: Express.Multer.File) {
     try {
-      const user = await this.prisma.user.findUnique({ where: { id } });
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        select: { avatar: true },
+      });
 
-      if (user.avatar) {
-        await this.deleteAvatar(id);
+      if (user?.avatar) {
+        const oldAvatarPath = join(IMAGES_DIR, user.avatar);
+        if (existsSync(oldAvatarPath)) {
+          try {
+            await unlink(oldAvatarPath);
+            this.logger.log(LOG_MESSAGES.avatarDeleted(id, user.avatar));
+          } catch (error) {
+            this.logger.error(
+              LOG_MESSAGES.avatarDeleteFailed(id, user.avatar),
+              error.stack
+            );
+            throw error;
+          }
+        }
       }
 
       await this.prisma.user.update({
