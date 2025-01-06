@@ -16,6 +16,12 @@ export class ProfileService {
 
   async setAvatar(id: string, file: Express.Multer.File) {
     try {
+      const user = await this.prisma.user.findUnique({ where: { id } });
+
+      if (user.avatar) {
+        await this.deleteAvatar(id);
+      }
+
       await this.prisma.user.update({
         where: { id },
         data: { avatar: file.filename },
