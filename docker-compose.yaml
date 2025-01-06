@@ -122,10 +122,10 @@ volumes:
   pgadmin_data:
   rabbitmq_data:
   elasticsearch_data:
+  avatar-storage:
 
 networks:
   elk:
   auth:
   meetup:
   pg:
-  avatar-storage:
