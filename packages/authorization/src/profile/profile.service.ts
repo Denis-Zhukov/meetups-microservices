@@ -4,8 +4,13 @@ import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { createReadStream, existsSync } from 'fs';
 import { IMAGES_DIR, LOG_MESSAGES } from '@/profile/profile.constants';
-import { FileReadException, FileNotFoundException } from '@/exceptions';
+import {
+  FileNotFoundException,
+  FileReadException,
+  UserNotFoundException,
+} from '@/exceptions';
 import { LoggerService } from '@/logger/logger.service';
+import { UpdateUserDto } from '@/profile/dto/update-user.dto';
 
 @Injectable()
 export class ProfileService {
@@ -15,13 +20,17 @@ export class ProfileService {
   ) {}
 
   async setAvatar(id: string, file: Express.Multer.File) {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { id },
-        select: { avatar: true },
-      });
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      select: { avatar: true },
+    });
 
-      if (user?.avatar) {
+    if (!user) {
+      throw new UserNotFoundException();
+    }
+
+    try {
+      if (user.avatar) {
         const oldAvatarPath = join(IMAGES_DIR, user.avatar);
         if (existsSync(oldAvatarPath)) {
           try {
@@ -32,7 +41,6 @@ export class ProfileService {
               LOG_MESSAGES.avatarDeleteFailed(id, user.avatar),
               error.stack
             );
-            throw error;
           }
         }
       }
@@ -84,7 +92,11 @@ export class ProfileService {
       select: { avatar: true },
     });
 
-    if (!user || !user.avatar) {
+    if (!user) {
+      throw new UserNotFoundException();
+    }
+
+    if (!user.avatar) {
       this.logger.warn(LOG_MESSAGES.avatarNotFoundForDelete(id));
       throw new FileNotFoundException();
     }
@@ -111,5 +123,32 @@ export class ProfileService {
       where: { id },
       data: { avatar: null },
     });
+  }
+
+  async updateUser(id: string, { name, surname }: UpdateUserDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new UserNotFoundException();
+    }
+
+    try {
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data: {
+          name: name ?? user.name,
+          surname: surname ?? user.surname,
+        },
+      });
+
+      this.logger.log(LOG_MESSAGES.userUpdated(id));
+
+      return updatedUser;
+    } catch (error) {
+      this.logger.error(LOG_MESSAGES.userUpdateFailed(id), error.stack);
+      throw error;
+    }
   }
 }

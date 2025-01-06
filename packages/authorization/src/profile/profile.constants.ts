@@ -26,4 +26,8 @@ export const LOG_MESSAGES = {
     `Failed to delete avatar for user ${userId}: ${filename}`,
   avatarNotFoundForDelete: (userId: string) =>
     `Avatar not found for user ${userId} (cannot delete)`,
+  userUpdated: (userId: string) =>
+    `User with ID: ${userId} successfully updated`,
+  userUpdateFailed: (userId: string) =>
+    `Failed to update user with ID: ${userId}`,
 };
