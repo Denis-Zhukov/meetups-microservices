@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Res,
   UploadedFile,
@@ -15,6 +17,7 @@ import { ProfileService } from '@/profile/profile.service';
 import { User } from '@/common/decorators/user.decarator';
 import { JwtPayload } from '@/common/types';
 import { Response } from 'express';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('profile')
 export class ProfileController {
@@ -49,5 +52,14 @@ export class ProfileController {
   @Delete('avatar')
   async deleteAvatar(@User() user: JwtPayload) {
     await this.profileService.deleteAvatar(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch()
+  async updateUser(
+    @User() user: JwtPayload,
+    @Body() updateUserDto?: UpdateUserDto
+  ) {
+    await this.profileService.updateUser(user.id, updateUserDto);
   }
 }
