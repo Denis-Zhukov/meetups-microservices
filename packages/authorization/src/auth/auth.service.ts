@@ -12,6 +12,7 @@ import { ConfigService } from '@nestjs/config';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { hash, genSalt, compare } from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
+import { MailerService } from '@/mailer/mailer.service';
 
 @Injectable()
 export class AuthService {
@@ -19,23 +20,24 @@ export class AuthService {
     private readonly prisma: PrismaClient,
     private readonly jwtService: JwtService,
     private readonly cfgService: ConfigService<EnvConfig>,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
+    private readonly mailer: MailerService
   ) {}
 
   private async generateAndStoreTokens(id: string) {
     const accessToken = await this.jwtService.signAsync(
       { id },
       {
-        secret: this.cfgService.get('ACCESS_JWT_SECRET'),
-        expiresIn: this.cfgService.get('ACCESS_JWT_EXPIRE_IN'),
+        secret: this.cfgService.getOrThrow('ACCESS_JWT_SECRET'),
+        expiresIn: this.cfgService.getOrThrow('ACCESS_JWT_EXPIRE_IN'),
       }
     );
 
     const refreshToken = await this.jwtService.signAsync(
       { id },
       {
-        secret: this.cfgService.get('REFRESH_JWT_SECRET'),
-        expiresIn: this.cfgService.get('REFRESH_JWT_EXPIRE_IN'),
+        secret: this.cfgService.getOrThrow('REFRESH_JWT_SECRET'),
+        expiresIn: this.cfgService.getOrThrow('REFRESH_JWT_EXPIRE_IN'),
       }
     );
 
@@ -51,14 +53,31 @@ export class AuthService {
     const salt = await genSalt();
     const passwordHash = await hash(password, salt);
 
+    const protocol = this.cfgService.getOrThrow('PROTOCOL');
+    const host = this.cfgService.getOrThrow('HOST');
+    const port = this.cfgService.getOrThrow('PORT');
+    // TODO: Replace to real hash(v4) + redis
+    const verifyHash = await this.jwtService.signAsync(
+      {},
+      {
+        secret: this.cfgService.getOrThrow('VERIFY_SECRET'),
+        expiresIn: this.cfgService.getOrThrow('VERIFY_EXPIRE_IN'),
+      }
+    );
+
     try {
       const user = await this.prisma.user.create({
         data: {
           email,
           passwordHash,
+          verifyHash,
         },
       });
       this.logger.log(`User created with email: ${email}`);
+
+      const verificationLink = `${protocol}://${host}:${port}/api/auth/verify/${verifyHash}`;
+      await this.mailer.sendVerificationEmail(email, verificationLink);
+
       return user;
     } catch (error) {
       if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
@@ -89,6 +108,13 @@ export class AuthService {
         'Email or password are incorrect',
         HttpStatus.BAD_REQUEST
       );
+    }
+
+    if (!user.verified) {
+      this.logger.warn(
+        `Failed login attempt: User with email ${email} not verified.`
+      );
+      throw new HttpException('Email is not verified', HttpStatus.BAD_REQUEST);
     }
 
     if (!(await compare(password, user.passwordHash))) {
@@ -142,6 +168,27 @@ export class AuthService {
       this.logger.error('Error refreshing token', error.stack);
 
       throw new UnauthorizedException();
+    }
+  }
+
+  public async verifyEmail(verifyHash: string) {
+    const user = await this.prisma.user.findFirst({ where: { verifyHash } });
+    if (!user)
+      throw new HttpException('Wrong verify hash', HttpStatus.BAD_REQUEST);
+
+    try {
+      await this.jwtService.verifyAsync(verifyHash, {
+        secret: this.cfgService.getOrThrow('VERIFY_SECRET'),
+      });
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          verified: true,
+          verifyHash: null,
+        },
+      });
+    } catch {
+      throw new HttpException('Verify hash is expired', HttpStatus.BAD_REQUEST);
     }
   }
 }

@@ -14,7 +14,7 @@ import { EnvConfig } from '@/common/types';
         const esTransport = new ElasticsearchTransport({
           level: 'info',
           clientOpts: {
-            node: cfgService.get('ELASTIC_HOST'),
+            node: cfgService.getOrThrow('ELASTIC_HOST'),
           },
           indexPrefix: 'auth-logs',
         });

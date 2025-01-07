@@ -1,0 +1,43 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Email Verification</title>
+    <style>
+      body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0;
+      padding: 0; background-color: transparent; color: #51545e; line-height:
+      1.6; } .container { max-width: 600px; margin: 40px auto; padding: 20px;
+      background: #ffffff; border-radius: 8px; border: 1px solid #e0e0e0;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); text-align: center; } .header
+      { text-align: center; margin-bottom: 20px; } .header h1 { font-size: 24px;
+      color: #333333; margin: 0; } .content { font-size: 16px; color: #51545e;
+      margin-bottom: 30px; } .button { display: inline-block; margin: 20px auto;
+      padding: 12px 30px; background-color: #3869d4; color: #ffffff;
+      text-decoration: none; border-radius: 5px; font-weight: bold; font-size:
+      16px; transition: background-color 0.3s ease; } .button:hover {
+      background-color: #2c5282; } .footer { margin-top: 20px; font-size: 12px;
+      color: #6b6e76; } .footer a { color: #3869d4; text-decoration: underline;
+      } .fallback-link { margin-top: 20px; font-size: 14px; color: #6b6e76; }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <div class='header'>
+        <h1>Confirm Your Email</h1>
+      </div>
+      <div class='content'>
+        <p>Thank you for signing up! Please confirm your email address to
+          activate your account.</p>
+        <a href='{{verificationUrl}}' class='button'>Verify Email</a>
+      </div>
+      <div class='fallback-link'>
+        <p>If the button above doesn’t work, copy and paste the link below into
+          your browser:</p>
+        <p><a href='{{verificationUrl}}'>{{verificationUrl}}</a></p>
+      </div>
+      <div class='footer'>
+        <p>If you didn’t request this email, please ignore it.</p>
+      </div>
+    </div>
+  </body>
+</html>
