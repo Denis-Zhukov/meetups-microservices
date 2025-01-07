@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   Res,
@@ -28,7 +29,7 @@ export class AuthController {
       httpOnly: true,
       path: '/',
       // The value in the config is stored in seconds, and maxAge stores the value in milliseconds.
-      maxAge: this.cfgService.get('REFRESH_JWT_EXPIRE_IN') * 1000,
+      maxAge: this.cfgService.getOrThrow('REFRESH_JWT_EXPIRE_IN') * 1000,
     });
   }
 
@@ -77,5 +78,10 @@ export class AuthController {
     this.setRefreshTokenCookie(res, newRefreshToken);
 
     return { accessToken };
+  }
+
+  @Get('verify/:hash')
+  async verifyEmail(@Param('hash') hash: string) {
+    await this.authService.verifyEmail(hash);
   }
 }

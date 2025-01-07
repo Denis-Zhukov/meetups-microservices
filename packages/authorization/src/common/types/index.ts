@@ -1,4 +1,8 @@
 export type EnvConfig = {
+  HOST: string;
+  PORT: number;
+  PROTOCOL: string;
+
   DATABASE_URL: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
@@ -10,8 +14,17 @@ export type EnvConfig = {
   ACCESS_JWT_EXPIRE_IN: number;
   REFRESH_JWT_EXPIRE_IN: number;
 
+  VERIFY_SECRET: string;
+  VERIFY_EXPIRE_IN: number;
+
   ELASTIC_HOST: string;
   RABBITMQ_HOST: string;
+
+  EMAIL_HOST: string;
+  EMAIL_PORT: number;
+  EMAIL_SECURE: boolean;
+  EMAIL_USER: string;
+  EMAIL_PASS: string;
 };
 
 export type OAuthPayload = {
