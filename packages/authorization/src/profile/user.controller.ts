@@ -13,15 +13,15 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { ProfileService } from '@/profile/profile.service';
+import { UserService } from '@/profile/user.service';
 import { User } from '@/common/decorators/user.decarator';
 import { JwtPayload } from '@/common/types';
 import { Response } from 'express';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@Controller('profile')
-export class ProfileController {
-  constructor(private readonly profileService: ProfileService) {}
+@Controller('user')
+export class UserController {
+  constructor(private readonly profileService: UserService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('avatar')
@@ -61,5 +61,11 @@ export class ProfileController {
     @Body() updateUserDto?: UpdateUserDto
   ) {
     await this.profileService.updateUser(user.id, updateUserDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete()
+  deleteUser(@User() user: JwtPayload) {
+    return this.profileService.deleteUser(user.id);
   }
 }

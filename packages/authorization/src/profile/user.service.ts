@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { createReadStream, existsSync } from 'fs';
-import { IMAGES_DIR, LOG_MESSAGES } from '@/profile/profile.constants';
+import { IMAGES_DIR, LOG_MESSAGES } from './user.constants';
 import {
   FileNotFoundException,
   FileReadException,
@@ -13,7 +13,7 @@ import { LoggerService } from '@/logger/logger.service';
 import { UpdateUserDto } from '@/profile/dto/update-user.dto';
 
 @Injectable()
-export class ProfileService {
+export class UserService {
   constructor(
     private readonly prisma: PrismaClient,
     private readonly logger: LoggerService
@@ -130,9 +130,7 @@ export class ProfileService {
       where: { id },
     });
 
-    if (!user) {
-      throw new UserNotFoundException();
-    }
+    if (!user) throw new UserNotFoundException();
 
     try {
       const updatedUser = await this.prisma.user.update({
@@ -148,6 +146,21 @@ export class ProfileService {
       return updatedUser;
     } catch (error) {
       this.logger.error(LOG_MESSAGES.userUpdateFailed(id), error.stack);
+      throw error;
+    }
+  }
+
+  async deleteUser(id: string) {
+    try {
+      const deletedUser = await this.prisma.user.delete({ where: { id } });
+      this.logger.log(LOG_MESSAGES.userDeleted(id));
+      return deletedUser;
+    } catch (error) {
+      if (error.code === 'P2025') {
+        this.logger.warn(LOG_MESSAGES.userNotFoundForDelete(id));
+        throw new UserNotFoundException();
+      }
+      this.logger.error(LOG_MESSAGES.userDeleteFailed(id), error.stack);
       throw error;
     }
   }

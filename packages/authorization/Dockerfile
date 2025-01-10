@@ -15,6 +15,7 @@ RUN mkdir -p /app/uploads
 
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/templates /app/templates
 
 RUN apt-get update -y && apt-get install -y openssl
 

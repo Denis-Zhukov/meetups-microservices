@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ProfileController } from './profile.controller';
+import { UserController } from './user.controller';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { ProfileService } from './profile.service';
+import { UserService } from './user.service';
 import { PrismaClient } from '@prisma/client';
 import {
   ALLOWED_EXTENSIONS,
@@ -10,7 +10,7 @@ import {
   IMAGES_DIR,
   MAX_FILENAME_LENGTH,
   MAX_IMAGE_SIZE,
-} from './profile.constants';
+} from './user.constants';
 import { LoggerModule } from '@/logger/logger.module';
 import { WrongMimeTypeException } from '@/exceptions/wrong-mime-type.exception';
 import { generateFilename } from '@/common/utils/generate-filename';
@@ -38,13 +38,13 @@ import { generateFilename } from '@/common/utils/generate-filename';
     }),
     LoggerModule,
   ],
-  controllers: [ProfileController],
+  controllers: [UserController],
   providers: [
-    ProfileService,
+    UserService,
     {
       provide: PrismaClient,
       useValue: new PrismaClient(),
     },
   ],
 })
-export class ProfileModule {}
+export class UserModule {}
