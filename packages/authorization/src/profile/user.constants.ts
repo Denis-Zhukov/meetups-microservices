@@ -30,4 +30,9 @@ export const LOG_MESSAGES = {
     `User with ID: ${userId} successfully updated`,
   userUpdateFailed: (userId: string) =>
     `Failed to update user with ID: ${userId}`,
+  userDeleted: (userId: string) =>
+    `User with ID: ${userId} successfully deleted`,
+  userNotFoundForDelete: (userId: string) =>
+    `User with ID: ${userId} doesn't exist`,
+  userDeleteFailed: (userId: string) => `Failed to delete user ${userId}`,
 };

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { LoggerModule } from './logger/logger.module';
-import { ProfileModule } from './profile/profile.module';
+import { UserModule } from './profile/user.module';
 import { MailerModule } from './mailer/mailer.module';
 import * as parseDotenv from 'dotenv-parse-variables';
 
@@ -14,7 +14,7 @@ import * as parseDotenv from 'dotenv-parse-variables';
     }),
     AuthModule,
     LoggerModule,
-    ProfileModule,
+    UserModule,
     MailerModule,
   ],
   controllers: [],
