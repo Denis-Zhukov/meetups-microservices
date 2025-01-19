@@ -10,10 +10,13 @@ import {
   IMAGES_DIR,
   MAX_FILENAME_LENGTH,
   MAX_IMAGE_SIZE,
+  RMQ_MEETUP,
 } from './user.constants';
 import { LoggerModule } from '@/logger/logger.module';
 import { WrongMimeTypeException } from '@/exceptions/wrong-mime-type.exception';
 import { generateFilename } from '@/common/utils/generate-filename';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -36,6 +39,22 @@ import { generateFilename } from '@/common/utils/generate-filename';
         fileSize: MAX_IMAGE_SIZE,
       },
     }),
+    ClientsModule.registerAsync([
+      {
+        name: RMQ_MEETUP,
+        useFactory: (cfgService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [cfgService.getOrThrow('RABBITMQ_HOST')],
+            queue: 'meetup_queue',
+            queueOptions: {
+              durable: true,
+            },
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
     LoggerModule,
   ],
   controllers: [UserController],

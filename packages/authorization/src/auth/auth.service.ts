@@ -10,7 +10,7 @@ import { PrismaClient } from '@prisma/client';
 import { EnvConfig, JwtPayload, OAuthPayload } from '@/common/types';
 import { ConfigService } from '@nestjs/config';
 import { RegisterUserDto } from './dto/register-user.dto';
-import { hash, genSalt, compare } from 'bcrypt';
+import { compare, genSalt, hash } from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { MailerService } from '@/mailer/mailer.service';
 
@@ -76,7 +76,7 @@ export class AuthService {
       this.logger.log(`User created with email: ${email}`);
 
       const verificationLink = `${protocol}://${host}:${port}/api/auth/verify/${verifyHash}`;
-      await this.mailer.sendVerificationEmail(email, verificationLink);
+      this.mailer.sendVerificationEmail(email, verificationLink);
 
       return user;
     } catch (error) {
@@ -189,6 +189,16 @@ export class AuthService {
       });
     } catch {
       throw new HttpException('Verify hash is expired', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  public async decodeAccessToken(token: string) {
+    try {
+      return await this.jwtService.verifyAsync(token, {
+        secret: this.cfgService.getOrThrow('ACCESS_JWT_SECRET'),
+      });
+    } catch {
+      return null;
     }
   }
 }

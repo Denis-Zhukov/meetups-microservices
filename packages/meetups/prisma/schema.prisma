@@ -22,7 +22,7 @@ enum InvitationStatus {
 
 model Meetup {
   id          String   @id @default(cuid())
-  creator     Int
+  creatorId   String
   name        String
   description String
   tags        String[]
@@ -42,9 +42,12 @@ model Invitee {
   id       String           @id @default(cuid())
   meetupId String
   userId   String
-  status   InvitationStatus
+  status   InvitationStatus @default(PENDING)
 
   meetup Meetup @relation(fields: [meetupId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("invitees")
 }

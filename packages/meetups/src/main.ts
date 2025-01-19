@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from '@/common/types';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,12 +13,14 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: [cfgService.get<string>('RABBITMQ_HOST')],
-      queue: 'auth_queue',
+      queue: 'meetup_queue',
       queueOptions: {
         durable: true,
       },
     },
   });
+  app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   await app.startAllMicroservices();
   await app.listen(process.env.PORT ?? 3001);
