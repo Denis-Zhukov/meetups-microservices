@@ -1,22 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { createReadStream, existsSync } from 'fs';
-import { IMAGES_DIR, LOG_MESSAGES } from './user.constants';
+import { IMAGES_DIR, LOG_MESSAGES, RMQ_MEETUP } from './user.constants';
 import {
   FileNotFoundException,
   FileReadException,
   UserNotFoundException,
 } from '@/exceptions';
 import { LoggerService } from '@/logger/logger.service';
-import { UpdateUserDto } from '@/profile/dto/update-user.dto';
+import { UpdateUserDto } from '@/user/dto/update-user.dto';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaClient,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
+    @Inject(RMQ_MEETUP) private readonly rmqMeetup: ClientProxy
   ) {}
 
   async setAvatar(id: string, file: Express.Multer.File) {
@@ -153,6 +155,7 @@ export class UserService {
   async deleteUser(id: string) {
     try {
       const deletedUser = await this.prisma.user.delete({ where: { id } });
+      this.rmqMeetup.emit('delete_user', { userId: deletedUser.id });
       this.logger.log(LOG_MESSAGES.userDeleted(id));
       return deletedUser;
     } catch (error) {

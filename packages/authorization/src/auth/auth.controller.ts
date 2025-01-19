@@ -16,6 +16,8 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GetAccessTokenDataDto } from '@/auth/dto/get-access-token-data.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -83,5 +85,10 @@ export class AuthController {
   @Get('verify/:hash')
   async verifyEmail(@Param('hash') hash: string) {
     await this.authService.verifyEmail(hash);
+  }
+
+  @MessagePattern('get_access_token_data')
+  async getAccessTokenData(@Payload() { token }: GetAccessTokenDataDto) {
+    return this.authService.decodeAccessToken(token);
   }
 }

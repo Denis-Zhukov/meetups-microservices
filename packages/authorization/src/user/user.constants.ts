@@ -1,5 +1,7 @@
 import { join } from 'path';
 
+export const RMQ_MEETUP = Symbol('RMQ_MEETUP');
+
 export const IMAGES_DIR = join(__dirname, '../../uploads');
 
 export const MAX_FILENAME_LENGTH = 100;
