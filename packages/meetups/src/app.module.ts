@@ -7,6 +7,7 @@ import { RMQ_AUTH } from '@/app.constants';
 import { InvitationModule } from './invitation/invitation.module';
 import { ReportModule } from './report/report.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { PrismaModule } from './prisma/prisma.module';
     InvitationModule,
     ReportModule,
     PrismaModule,
+    ElasticsearchModule,
   ],
   controllers: [],
   providers: [],

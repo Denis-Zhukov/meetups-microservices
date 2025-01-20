@@ -23,6 +23,11 @@ import { PositiveIntPipe } from '@/common/pipes/positive-nubmer.pipe';
 export class MeetupController {
   constructor(private readonly meetupService: MeetupService) {}
 
+  @Get('search')
+  async search(@Query('q') query: string) {
+    return this.meetupService.getMeetupByText(query);
+  }
+
   @Get('/:id')
   getMeetup(@Param('id') id: string) {
     return this.meetupService.getMeetupById(id);
