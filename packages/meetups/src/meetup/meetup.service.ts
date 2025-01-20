@@ -8,6 +8,8 @@ import { UpdateMeetupDto } from '@/meetup/dto/update-meetup.dto';
 import { LoggerService } from '@/logger/logger.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { ElasticsearchService } from '@/elasticsearch/elasticsearch.service';
+import { FilterMeetupsDto } from '@/meetup/dto/filter-meetups.dto';
+
 @Injectable()
 export class MeetupService {
   constructor(
@@ -15,6 +17,30 @@ export class MeetupService {
     private readonly logger: LoggerService,
     private readonly elastic: ElasticsearchService
   ) {}
+
+  async getMeetupsInRadius({ latitude, longitude, radius }: FilterMeetupsDto) {
+    try {
+      return await this.prisma.$queryRaw`
+              SELECT 
+                id, creator_id, name, description, tags, place, start, "end", 
+                created_at AS "createdAt",
+                updated_at AS "updatedAt",
+                creator_id AS "creatorId",
+                ST_X(location::geometry) AS longitude,  
+                ST_Y(location::geometry) AS latitude
+              FROM "meetups"
+              WHERE ST_DWithin(
+                location::geography, 
+                ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326)::geography, 
+                ${radius}
+              )
+            `;
+    } catch {
+      throw new InternalServerErrorException(
+        'Error fetching meetups in radius'
+      );
+    }
+  }
 
   public async getMeetupByText(text: string) {
     return this.elastic.searchMeetups(text);
@@ -24,7 +50,16 @@ export class MeetupService {
     let meetup;
 
     try {
-      meetup = await this.prisma.meetup.findUnique({ where: { id } });
+      meetup = await this.prisma.$queryRaw`
+            SELECT
+                id, creator_id, name, description, tags, place, start, "end",
+                created_at AS "createdAt",
+                updated_at AS "updatedAt",
+                creator_id AS "creatorId",
+                ST_X(location::geometry) AS longitude,  
+                ST_Y(location::geometry) AS latitude
+            FROM meetups
+            WHERE id = ${id}`;
     } catch (error) {
       this.logger.error(`Error fetching meetup with ID ${id}`, error.stack);
       throw new NotFoundException(`Meetup with ID ${id} not found`);
@@ -39,28 +74,30 @@ export class MeetupService {
   }
 
   async getMeetupsWithPagination(userId: string, skip: number, take: number) {
-    try {
-      const meetups = await this.prisma.meetup.findMany({
-        skip,
-        take,
-        where: { creatorId: userId },
-      });
+    const meetups = await this.prisma.$queryRaw`
+              SELECT 
+                id, creator_id, name, description, tags, place, start, "end",
+                created_at AS "createdAt",
+                updated_at AS "updatedAt",
+                creator_id AS "creatorId",
+                ST_X(location::geometry) AS longitude,  
+                ST_Y(location::geometry) AS latitude
+              FROM meetups
+              WHERE creator_id = ${userId}
+              LIMIT ${take} OFFSET ${skip};
+        `;
 
-      const totalCount = await this.prisma.meetup.count();
+    const totalCount = await this.prisma.meetup.count();
 
-      return {
-        meetups,
-        totalCount,
-      };
-    } catch (error) {
-      this.logger.error('Error fetching meetups with pagination', error.stack);
-      throw new InternalServerErrorException('Error fetching meetups');
-    }
+    return {
+      meetups,
+      totalCount,
+    };
   }
 
   async addMeetup(
     creatorId: string,
-    { name, description, tags, place, start, end }: AddMeetupDto
+    { name, description, tags, place, start, end, location }: AddMeetupDto
   ) {
     try {
       const meetup = await this.prisma.meetup.create({
@@ -74,7 +111,17 @@ export class MeetupService {
           end,
         },
       });
+
+      if (location) {
+        await this.prisma.$queryRaw`
+                  UPDATE "meetups"
+                  SET "location" = ST_SetSRID(ST_MakePoint(${location.longitude}, ${location.latitude}), 4326)
+                  WHERE "id" = ${meetup.id}
+                `;
+      }
+
       await this.elastic.indexMeetup(meetup);
+
       return meetup;
     } catch (error) {
       this.logger.error('Error adding new meetup', error.stack);
@@ -85,10 +132,10 @@ export class MeetupService {
   async updateMeetup(
     userId: string,
     meetupId: string,
-    { name, description, tags, place, start, end }: UpdateMeetupDto
+    { name, description, tags, place, start, end, location }: UpdateMeetupDto
   ) {
     try {
-      return await this.prisma.meetup.update({
+      await this.prisma.meetup.update({
         where: { id: meetupId, creatorId: userId },
         data: {
           name,
@@ -99,6 +146,14 @@ export class MeetupService {
           end,
         },
       });
+
+      if (location) {
+        await this.prisma.$queryRaw`
+                  UPDATE "meetups"
+                  SET "location" = ST_SetSRID(ST_MakePoint(${location.longitude}, ${location.latitude}), 4326)
+                  WHERE "id" = ${meetupId}
+                `;
+      }
     } catch (error) {
       if (error.code === 'P2025') {
         this.logger.warn(

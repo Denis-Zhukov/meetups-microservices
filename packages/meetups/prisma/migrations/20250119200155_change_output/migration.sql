@@ -13,4 +13,4 @@ ALTER COLUMN "status" SET DEFAULT 'PENDING';
 
 -- AlterTable
 ALTER TABLE "meetups" DROP COLUMN "creator",
-ADD COLUMN     "creatorId" TEXT NOT NULL;
+ADD COLUMN     "creator_id" TEXT NOT NULL;

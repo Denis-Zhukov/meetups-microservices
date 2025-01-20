@@ -21,20 +21,22 @@ enum InvitationStatus {
 }
 
 model Meetup {
-  id          String   @id @default(cuid())
-  creatorId   String
+  id          String                    @id @default(cuid())
+  creatorId   String                    @map("creator_id")
   name        String
   description String
   tags        String[]
   place       String
   start       DateTime
   end         DateTime
+  location    Unsupported("geography")?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   invitees Invitee[]
 
+  @@index([location], name: "location_idx", type: Gist)
   @@map("meetups")
 }
 

@@ -5,6 +5,7 @@ import {
   IsArray,
   ArrayMinSize,
   ArrayMaxSize,
+  IsObject,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -37,4 +38,8 @@ export class UpdateMeetupDto {
   @IsOptional()
   @IsDate()
   end?: Date;
+
+  @IsOptional()
+  @IsObject()
+  location?: { latitude: number; longitude: number };
 }

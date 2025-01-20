@@ -4,6 +4,8 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDate,
+  IsObject,
+  IsOptional,
   IsString,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -32,4 +34,8 @@ export class AddMeetupDto {
   @Type(() => Date)
   @IsDate()
   end: Date;
+
+  @IsOptional()
+  @IsObject()
+  location?: { latitude: number; longitude: number };
 }
