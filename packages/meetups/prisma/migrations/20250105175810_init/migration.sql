@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS postgis;
 -- CreateEnum
 CREATE TYPE "InvitationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED');
 

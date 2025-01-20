@@ -17,11 +17,17 @@ import { User } from '@/common/decorators/user.decorator';
 import { AuthGuard } from '@/common/guards/rabbitmq-auth.guard';
 import { UpdateMeetupDto } from '@/meetup/dto/update-meetup.dto';
 import { PositiveIntPipe } from '@/common/pipes/positive-nubmer.pipe';
+import { FilterMeetupsDto } from '@/meetup/dto/filter-meetups.dto';
 
 @UseGuards(AuthGuard)
 @Controller('meetup')
 export class MeetupController {
   constructor(private readonly meetupService: MeetupService) {}
+
+  @Get('radius')
+  async getMeetupsInRadius(@Query() filter: FilterMeetupsDto) {
+    return this.meetupService.getMeetupsInRadius(filter);
+  }
 
   @Get('search')
   async search(@Query('q') query: string) {
