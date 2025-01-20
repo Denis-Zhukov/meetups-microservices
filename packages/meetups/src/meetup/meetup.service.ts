@@ -7,13 +7,18 @@ import { AddMeetupDto } from '@/meetup/dto/add-meetup.dto';
 import { UpdateMeetupDto } from '@/meetup/dto/update-meetup.dto';
 import { LoggerService } from '@/logger/logger.service';
 import { PrismaService } from '@/prisma/prisma.service';
-
+import { ElasticsearchService } from '@/elasticsearch/elasticsearch.service';
 @Injectable()
 export class MeetupService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
+    private readonly elastic: ElasticsearchService
   ) {}
+
+  public async getMeetupByText(text: string) {
+    return this.elastic.searchMeetups(text);
+  }
 
   public async getMeetupById(id: string) {
     let meetup;
@@ -58,7 +63,7 @@ export class MeetupService {
     { name, description, tags, place, start, end }: AddMeetupDto
   ) {
     try {
-      return await this.prisma.meetup.create({
+      const meetup = await this.prisma.meetup.create({
         data: {
           creatorId,
           name,
@@ -69,6 +74,8 @@ export class MeetupService {
           end,
         },
       });
+      await this.elastic.indexMeetup(meetup);
+      return meetup;
     } catch (error) {
       this.logger.error('Error adding new meetup', error.stack);
       throw new InternalServerErrorException('Error adding meetup');

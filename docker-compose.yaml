@@ -89,7 +89,7 @@ services:
       - meetup
 
   elasticsearch:
-    image: elasticsearch:7.17.26
+    image: vooft/elasticsearch-ru
     restart: always
     environment:
       discovery.type: 'single-node'
