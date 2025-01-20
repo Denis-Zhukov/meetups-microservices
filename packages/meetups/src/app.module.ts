@@ -4,6 +4,9 @@ import { UserModule } from './user/user.module';
 import { MeetupModule } from './meetup/meetup.module';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { RMQ_AUTH } from '@/app.constants';
+import { InvitationModule } from './invitation/invitation.module';
+import { ReportModule } from './report/report.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -31,6 +34,9 @@ import { RMQ_AUTH } from '@/app.constants';
         },
       ],
     }),
+    InvitationModule,
+    ReportModule,
+    PrismaModule,
   ],
   controllers: [],
   providers: [],
