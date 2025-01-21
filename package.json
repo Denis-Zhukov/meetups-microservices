@@ -9,6 +9,7 @@
     "lint": "eslint . && prettier --check .",
     "precommit": "eslint .",
     "prepare": "husky install",
+    "start:dev": "yarn workspaces run start:dev",
     "migrate:dev": "yarn workspaces run migrate:dev",
     "migrate:prod": "yarn workspaces run migrate:prod"
   },
