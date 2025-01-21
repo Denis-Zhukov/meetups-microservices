@@ -71,7 +71,7 @@ export class UserController {
     return this.userService.deleteUser(user.id);
   }
 
-  @MessagePattern('all-users-exist')
+  @MessagePattern('all_users_exist')
   allUsersExist(@Payload() data: AllUsersExistDto) {
     return this.userService.allUsersExist(data.users);
   }

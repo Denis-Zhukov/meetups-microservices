@@ -4,9 +4,13 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsDate,
+  IsLatitude,
+  IsLongitude,
+  IsNumber,
   IsObject,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -37,5 +41,17 @@ export class AddMeetupDto {
 
   @IsOptional()
   @IsObject()
+  @ValidateNested()
+  @Type(() => LocationDto)
   location?: { latitude: number; longitude: number };
+}
+
+export class LocationDto {
+  @IsLatitude()
+  @IsNumber()
+  latitude: number;
+
+  @IsLongitude()
+  @IsNumber()
+  longitude: number;
 }
