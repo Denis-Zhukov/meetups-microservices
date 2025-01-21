@@ -18,7 +18,7 @@ import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { GetAccessTokenDataDto } from '@/auth/dto/get-access-token-data.dto';
-import { COOKIE_REFRESH_TOKEN } from '@/auth/auth.constants';
+import { COOKIE_REFRESH_TOKEN, RESPONSES } from '@/auth/auth.constants';
 import { RMQ_PATTERNS } from '../app.constants';
 
 @Controller('auth')
@@ -85,8 +85,9 @@ export class AuthController {
   }
 
   @Get('verify/:hash')
-  verifyEmail(@Param('hash') hash: string) {
-    return this.authService.verifyEmail(hash);
+  async verifyEmail(@Param('hash') hash: string) {
+    await this.authService.verifyEmail(hash);
+    return { message: RESPONSES.verified };
   }
 
   @MessagePattern(RMQ_PATTERNS.getAccessTokenData)

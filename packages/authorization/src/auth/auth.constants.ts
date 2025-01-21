@@ -42,3 +42,7 @@ export const EXCEPTION_MESSAGES = {
   emailNotVerified: 'Email is not verified',
   userNotExist: 'User does not exist',
 } as const;
+
+export const RESPONSES = {
+  verified: 'Email has been verified',
+};
