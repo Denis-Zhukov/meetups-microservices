@@ -4,6 +4,17 @@ import tseslint from 'typescript-eslint';
 
 export default [
   {
+    ignores: [
+      'packages/**/dist/',
+      '**/node_modules/**',
+      '**/build/**',
+      '.husky/**',
+      '.github/**',
+      '*.config.js',
+      '*.config.mjs',
+    ],
+  },
+  {
     files: ['**/*.{js,mjs,cjs,ts}'],
     languageOptions: {
       globals: {
@@ -11,16 +22,6 @@ export default [
         module: 'readonly',
       },
     },
-  },
-  {
-    files: [
-      '**/node_modules/**',
-      '**/build/**',
-      '**/dist/**',
-      '*.config.js',
-      '*.config.mjs',
-    ],
-    rules: { 'no-undef': 'off' },
   },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,

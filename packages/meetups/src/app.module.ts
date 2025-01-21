@@ -1,10 +1,48 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserModule } from './user/user.module';
+import { MeetupModule } from './meetup/meetup.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { RMQ_AUTH } from '@/app.constants';
+import { InvitationModule } from './invitation/invitation.module';
+import { ReportModule } from './report/report.module';
+import { PrismaModule } from './prisma/prisma.module';
+import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
+import { LoggerModule } from '@/logger/logger.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    UserModule,
+    MeetupModule,
+    ClientsModule.registerAsync({
+      isGlobal: true,
+      clients: [
+        {
+          name: RMQ_AUTH,
+          useFactory: (cfgService) => ({
+            transport: Transport.RMQ,
+            options: {
+              urls: [cfgService.getOrThrow('RABBITMQ_HOST')],
+              queue: 'auth_queue',
+              queueOptions: {
+                durable: true,
+              },
+            },
+          }),
+          inject: [ConfigService],
+        },
+      ],
+    }),
+    InvitationModule,
+    ReportModule,
+    PrismaModule,
+    ElasticsearchModule,
+    LoggerModule,
+  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

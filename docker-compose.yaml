@@ -1,0 +1,131 @@
+services:
+  auth_service:
+    build:
+      context: .
+      dockerfile: packages/authorization/Dockerfile
+    ports:
+      - '3000:3000'
+    depends_on:
+      - auth_db
+      - rabbitmq
+      - elasticsearch
+    env_file:
+      - ./packages/authorization/.env
+    volumes:
+      - avatar-storage:/app/uploads
+    networks:
+      - auth
+      - elk
+
+  auth_db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASS}
+      POSTGRES_DB: ${AUTH_DB}
+    ports:
+      - '5432:5432'
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+    networks:
+      - auth
+      - pg
+
+  meetup_service:
+    build:
+      context: .
+      dockerfile: packages/meetups/Dockerfile
+    ports:
+      - '3001:3001'
+    depends_on:
+      - meetup_db
+      - rabbitmq
+      - elasticsearch
+    env_file:
+      - ./packages/meetups/.env
+    networks:
+      - meetup
+      - elk
+
+  meetup_db:
+    image: postgis/postgis:14-3.1
+    restart: always
+    environment:
+      POSTGRES_USER: ${MEETUP_DB_USER}
+      POSTGRES_PASSWORD: ${MEETUP_DB_PASS}
+      POSTGRES_DB: ${MEETUP_DB}
+    ports:
+      - '5433:5432'
+    volumes:
+      - meetup_data:/var/lib/postgresql/data
+    networks:
+      - meetup
+      - pg
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PG_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PG_PASS}
+    ports:
+      - '8080:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - pg
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - auth
+      - meetup
+
+  elasticsearch:
+    image: vooft/elasticsearch-ru
+    restart: always
+    environment:
+      discovery.type: 'single-node'
+      xpack.security.enabled: 'false'
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      ES_JAVA_OPTS: '-Xmx2g -Xms2g'
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - elk
+
+  kibana:
+    image: kibana:7.17.26
+    restart: always
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - '5601:5601'
+    networks:
+      - elk
+
+volumes:
+  auth_data:
+  meetup_data:
+  pgadmin_data:
+  rabbitmq_data:
+  elasticsearch_data:
+  avatar-storage:
+
+networks:
+  elk:
+  auth:
+  meetup:
+  pg:

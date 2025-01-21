@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model Meetup {
+  id          String                    @id @default(cuid())
+  creatorId   String                    @map("creator_id")
+  name        String
+  description String
+  tags        String[]
+  place       String
+  start       DateTime
+  end         DateTime
+  location    Unsupported("geography")?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  invitees Invitee[]
+
+  @@index([location], name: "location_idx", type: Gist)
+  @@map("meetups")
+}
+
+model Invitee {
+  id       String           @id @default(cuid())
+  meetupId String
+  userId   String
+  status   InvitationStatus @default(PENDING)
+
+  meetup Meetup @relation(fields: [meetupId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, meetupId])
+  @@map("invitees")
+}
