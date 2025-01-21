@@ -39,7 +39,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('avatar/:filename')
-  async getAvatar(@Param('filename') filename: string, @Res() res: Response) {
+  getAvatar(@Param('filename') filename: string, @Res() res: Response) {
     const fileStream = this.userService.getAvatar(filename);
 
     res.set({
@@ -52,8 +52,8 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Delete('avatar')
-  async deleteAvatar(@User() user: JwtPayload) {
-    await this.userService.deleteAvatar(user.id);
+  deleteAvatar(@User() user: JwtPayload) {
+    return this.userService.deleteAvatar(user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -73,7 +73,6 @@ export class UserController {
 
   @MessagePattern('all-users-exist')
   allUsersExist(@Payload() data: AllUsersExistDto) {
-    console.log(data);
     return this.userService.allUsersExist(data.users);
   }
 }

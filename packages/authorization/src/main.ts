@@ -13,11 +13,9 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [cfgService.get<string>('RABBITMQ_HOST')],
-      queue: 'auth_queue',
-      queueOptions: {
-        durable: true,
-      },
+      urls: [cfgService.getOrThrow<string>('RABBITMQ_HOST')],
+      queue: cfgService.get<string>('AUTH_QUEUE'),
+      queueOptions: { durable: true },
     },
   });
 
@@ -30,7 +28,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   await app.startAllMicroservices();
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(cfgService.get<number>('PORT') ?? 3000);
 }
 
 bootstrap();

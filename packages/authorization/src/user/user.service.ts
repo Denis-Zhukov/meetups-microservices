@@ -2,54 +2,58 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 import { createReadStream, existsSync } from 'fs';
-import { IMAGES_DIR, LOG_MESSAGES, RMQ_MEETUP } from './user.constants';
 import {
-  FileNotFoundException,
-  FileReadException,
-  UserNotFoundException,
-} from '@/exceptions';
+  EXCEPTION_ERRORS,
+  IMAGES_DIR,
+  LOG_MESSAGES,
+  RMQ_MEETUP,
+  RMQ_REMOVE_MEETUPS_OF_THIS_USER,
+} from './user.constants';
 import { LoggerService } from '@/logger/logger.service';
 import { UpdateUserDto } from '@/user/dto/update-user.dto';
 import { ClientProxy } from '@nestjs/microservices';
+import { PrismaService } from '@/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
   constructor(
-    private readonly prisma: PrismaClient,
+    private readonly prisma: PrismaService,
     private readonly logger: LoggerService,
     @Inject(RMQ_MEETUP) private readonly rmqMeetup: ClientProxy
   ) {}
 
-  async setAvatar(id: string, file: Express.Multer.File) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { avatar: true },
-    });
+  private async deleteAvatarFile(id: string, avatar: string) {
+    const avatarPath = join(IMAGES_DIR, avatar);
 
-    if (!user) {
-      throw new UserNotFoundException();
-    }
-
-    try {
-      if (user.avatar) {
-        const oldAvatarPath = join(IMAGES_DIR, user.avatar);
-        if (existsSync(oldAvatarPath)) {
-          try {
-            await unlink(oldAvatarPath);
-            this.logger.log(LOG_MESSAGES.avatarDeleted(id, user.avatar));
-          } catch (error) {
-            this.logger.error(
-              LOG_MESSAGES.avatarDeleteFailed(id, user.avatar),
-              error.stack
-            );
-          }
-        }
+    if (existsSync(avatarPath)) {
+      try {
+        await unlink(avatarPath);
+        this.logger.log(LOG_MESSAGES.avatarDeleted(id, avatar));
+      } catch (error) {
+        this.logger.error(LOG_MESSAGES.avatarDeleteFailed(id), error.stack);
+        throw error;
       }
+    } else {
+      this.logger.warn(LOG_MESSAGES.avatarNotFoundForDelete(id));
+      throw new NotFoundException(EXCEPTION_ERRORS.fileNotFound);
+    }
+  }
+
+  async setAvatar(id: string, file: Express.Multer.File) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        select: { avatar: true },
+      });
+
+      if (!user) throw new NotFoundException(EXCEPTION_ERRORS.userNotFound);
+
+      if (user.avatar) await this.deleteAvatarFile(id, user.avatar);
 
       await this.prisma.user.update({
         where: { id },
@@ -58,6 +62,9 @@ export class UserService {
 
       this.logger.log(LOG_MESSAGES.avatarUpdated(id, file.filename));
     } catch (error) {
+      if (!(error instanceof NotFoundException)) {
+        this.logger.error(LOG_MESSAGES.userUpdateFailed(id), error.stack);
+      }
       this.logger.error(
         LOG_MESSAGES.avatarUpdateFailed(id, file.filename),
         error.stack
@@ -71,7 +78,7 @@ export class UserService {
 
     if (!existsSync(filePath)) {
       this.logger.warn(LOG_MESSAGES.avatarNotFound(filePath));
-      throw new FileNotFoundException();
+      throw new NotFoundException(EXCEPTION_ERRORS.fileNotFound);
     }
 
     try {
@@ -79,7 +86,9 @@ export class UserService {
 
       fileStream.on('error', (error) => {
         this.logger.error(LOG_MESSAGES.avatarReadError(filePath), error.stack);
-        throw new FileReadException();
+        throw new InternalServerErrorException(
+          EXCEPTION_ERRORS.fileReadingError
+        );
       });
 
       return fileStream;
@@ -93,52 +102,39 @@ export class UserService {
   }
 
   async deleteAvatar(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-      select: { avatar: true },
-    });
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        select: { avatar: true },
+      });
 
-    if (!user) {
-      throw new UserNotFoundException();
-    }
+      if (!user) throw new NotFoundException(EXCEPTION_ERRORS.userNotFound);
 
-    if (!user.avatar) {
-      this.logger.warn(LOG_MESSAGES.avatarNotFoundForDelete(id));
-      throw new FileNotFoundException();
-    }
-
-    const avatarPath = join(IMAGES_DIR, user.avatar);
-
-    if (existsSync(avatarPath)) {
-      try {
-        await unlink(avatarPath);
-        this.logger.log(LOG_MESSAGES.avatarDeleted(id, user.avatar));
-      } catch (error) {
-        this.logger.error(
-          LOG_MESSAGES.avatarDeleteFailed(id, user.avatar),
-          error.stack
-        );
-        throw error;
+      if (!user.avatar) {
+        this.logger.warn(LOG_MESSAGES.avatarNotFoundForDelete(id));
+        throw new NotFoundException(EXCEPTION_ERRORS.fileNotFound);
       }
-    } else {
-      this.logger.warn(LOG_MESSAGES.avatarNotFoundForDelete(id));
-      throw new FileNotFoundException();
-    }
 
-    await this.prisma.user.update({
-      where: { id },
-      data: { avatar: null },
-    });
+      await this.deleteAvatarFile(id, user.avatar);
+
+      await this.prisma.user.update({
+        where: { id },
+        data: { avatar: null },
+      });
+    } catch (error) {
+      if (!(error instanceof NotFoundException)) {
+        this.logger.error(LOG_MESSAGES.avatarDeleteFailed(id), error.stack);
+      }
+      throw error;
+    }
   }
 
   async updateUser(id: string, { name, surname }: UpdateUserDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
-
-    if (!user) throw new UserNotFoundException();
-
     try {
+      const user = await this.prisma.user.findUnique({ where: { id } });
+
+      if (!user) throw new NotFoundException(EXCEPTION_ERRORS.userNotFound);
+
       const updatedUser = await this.prisma.user.update({
         where: { id },
         data: {
@@ -151,7 +147,9 @@ export class UserService {
 
       return updatedUser;
     } catch (error) {
-      this.logger.error(LOG_MESSAGES.userUpdateFailed(id), error.stack);
+      if (!(error instanceof NotFoundException)) {
+        this.logger.error(LOG_MESSAGES.userUpdateFailed(id), error.stack);
+      }
       throw error;
     }
   }
@@ -159,13 +157,15 @@ export class UserService {
   async deleteUser(id: string) {
     try {
       const deletedUser = await this.prisma.user.delete({ where: { id } });
-      this.rmqMeetup.emit('delete_user', { userId: deletedUser.id });
+      this.rmqMeetup.emit(RMQ_REMOVE_MEETUPS_OF_THIS_USER, {
+        userId: deletedUser.id,
+      });
       this.logger.log(LOG_MESSAGES.userDeleted(id));
       return deletedUser;
     } catch (error) {
       if (error.code === 'P2025') {
         this.logger.warn(LOG_MESSAGES.userNotFoundForDelete(id));
-        throw new UserNotFoundException();
+        throw new NotFoundException(EXCEPTION_ERRORS.userNotFound);
       }
       this.logger.error(LOG_MESSAGES.userDeleteFailed(id), error.stack);
       throw error;
@@ -174,21 +174,18 @@ export class UserService {
 
   async allUsersExist(users: string[]): Promise<boolean> {
     try {
-      console.log('users', users);
       const usersInDb = await this.prisma.user.findMany({
         where: {
-          id: {
-            in: users,
-          },
+          id: { in: users },
         },
-        select: {
-          id: true,
-        },
+        select: { id: true },
       });
-      console.log('usersInDb', usersInDb);
       return usersInDb.length === users?.length;
     } catch (error) {
-      this.logger.error('Error checking if users exist', error.stack);
+      this.logger.error(
+        LOG_MESSAGES.errorCheckingUsersExist(users),
+        error.stack
+      );
       throw new InternalServerErrorException('Error checking if users exist');
     }
   }

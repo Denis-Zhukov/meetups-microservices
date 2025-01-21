@@ -18,7 +18,10 @@ export type EnvConfig = {
   VERIFY_EXPIRE_IN: number;
 
   ELASTIC_HOST: string;
+
   RABBITMQ_HOST: string;
+  AUTH_QUEUE: string;
+  MEETUP_QUEUE: string;
 
   EMAIL_HOST: string;
   EMAIL_PORT: number;
