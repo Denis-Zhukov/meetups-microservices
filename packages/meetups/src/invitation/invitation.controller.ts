@@ -6,42 +6,49 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { InvitationService } from '@/invitation/invitation.service';
+import { InvitationService } from './invitation.service';
 import { AddUsersToMeetupDto } from './dto/add-users-to-meetup.dto';
-import { RemoveUsersFromMeetupDto } from '@/invitation/dto/remove-users-from-meetup.dto';
-import { AuthGuard } from '@/common/guards/rabbitmq-auth.guard';
+import { RemoveUsersFromMeetupDto } from './dto/remove-users-from-meetup.dto';
+import { AuthGuard } from '@/common/guards/auth.guard';
 import { User } from '@/common/decorators/user.decorator';
+import { UserPayload } from '@/common/types';
 
 @UseGuards(AuthGuard)
 @Controller('invitation')
 export class InvitationController {
-  constructor(private readonly invitationService: InvitationService) {}
+  constructor(private readonly service: InvitationService) {}
 
   @Post(':id/invite')
-  async addUsersToMeetup(
-    @User() user,
+  addUsersToMeetup(
+    @User() user: UserPayload,
     @Param('id') meetupId: string,
     @Body() { userIds }: AddUsersToMeetupDto
   ) {
-    await this.invitationService.addUsersToMeetup(user.id, meetupId, userIds);
-    return { message: 'Users added to meetup successfully' };
+    return this.service.addUsersToMeetup(user.id, meetupId, userIds);
   }
 
   @Post(':id/remove-invitees')
   async removeUsersFromMeetup(
+    @User() user: UserPayload,
     @Param('id') meetupId: string,
     @Body() { userIds }: RemoveUsersFromMeetupDto
   ) {
-    return this.invitationService.removeUsersFromMeetup(meetupId, userIds);
+    return this.service.removeUsersFromMeetup(user.id, meetupId, userIds);
   }
 
   @Patch(':meetupId/accept')
-  async acceptInvitation(@User() user, @Param('meetupId') meetupId: string) {
-    return this.invitationService.acceptInvitation(user.id, meetupId);
+  async acceptInvitation(
+    @User() user: UserPayload,
+    @Param('meetupId') meetupId: string
+  ) {
+    return this.service.acceptInvitation(user.id, meetupId);
   }
 
   @Patch(':meetupId/decline')
-  async declineInvitation(@User() user, @Param('meetupId') meetupId: string) {
-    return this.invitationService.declineInvitation(user.id, meetupId);
+  async declineInvitation(
+    @User() user: UserPayload,
+    @Param('meetupId') meetupId: string
+  ) {
+    return this.service.declineInvitation(user.id, meetupId);
   }
 }

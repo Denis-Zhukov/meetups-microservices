@@ -14,10 +14,11 @@ import {
 import { AddMeetupDto } from '@/meetup/dto/add-meetup.dto';
 import { MeetupService } from '@/meetup/meetup.service';
 import { User } from '@/common/decorators/user.decorator';
-import { AuthGuard } from '@/common/guards/rabbitmq-auth.guard';
+import { AuthGuard } from '@/common/guards/auth.guard';
 import { UpdateMeetupDto } from '@/meetup/dto/update-meetup.dto';
 import { PositiveIntPipe } from '@/common/pipes/positive-nubmer.pipe';
 import { FilterMeetupsDto } from '@/meetup/dto/filter-meetups.dto';
+import { UserPayload } from '@/common/types';
 
 @UseGuards(AuthGuard)
 @Controller('meetup')
@@ -41,7 +42,7 @@ export class MeetupController {
 
   @Get()
   getMeetups(
-    @User() user,
+    @User() user: UserPayload,
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe, PositiveIntPipe)
     skip: number,
     @Query('take', new DefaultValuePipe(10), ParseIntPipe, PositiveIntPipe)
@@ -51,13 +52,13 @@ export class MeetupController {
   }
 
   @Post()
-  async addMeetup(@User() user, @Body() data: AddMeetupDto) {
+  async addMeetup(@User() user: UserPayload, @Body() data: AddMeetupDto) {
     return await this.meetupService.addMeetup(user.id, data);
   }
 
   @Patch('/:id')
   async updateMeetup(
-    @User() user,
+    @User() user: UserPayload,
     @Param('id') meetupId: string,
     @Body() data: UpdateMeetupDto
   ) {
@@ -65,7 +66,7 @@ export class MeetupController {
   }
 
   @Delete('/:id')
-  async deleteMeetup(@User() user, @Param('id') meetupId: string) {
+  async deleteMeetup(@User() user: UserPayload, @Param('id') meetupId: string) {
     return await this.meetupService.deleteMeetup(user.id, meetupId);
   }
 }

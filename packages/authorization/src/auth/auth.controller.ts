@@ -19,7 +19,7 @@ import { Request, Response } from 'express';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { GetAccessTokenDataDto } from '@/auth/dto/get-access-token-data.dto';
 import { COOKIE_REFRESH_TOKEN } from '@/auth/auth.constants';
-import { RMQ_PATTERNS } from '../../app.constants';
+import { RMQ_PATTERNS } from '../app.constants';
 
 @Controller('auth')
 export class AuthController {

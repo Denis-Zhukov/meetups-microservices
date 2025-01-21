@@ -14,7 +14,7 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: [cfgService.getOrThrow<string>('RABBITMQ_HOST')],
-      queue: cfgService.get<string>('AUTH_QUEUE'),
+      queue: cfgService.getOrThrow<string>('AUTH_QUEUE'),
       queueOptions: { durable: true },
     },
   });
