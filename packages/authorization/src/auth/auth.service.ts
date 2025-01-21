@@ -1,52 +1,67 @@
 import { LoggerService } from '@/logger/logger.service';
 import {
-  HttpException,
-  HttpStatus,
+  BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaClient } from '@prisma/client';
 import { EnvConfig, JwtPayload, OAuthPayload } from '@/common/types';
 import { ConfigService } from '@nestjs/config';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { compare, genSalt, hash } from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { MailerService } from '@/mailer/mailer.service';
+import { PrismaService } from '@/prisma/prisma.service';
+import {
+  EXCEPTION_MESSAGES,
+  getVerifyEmailUrl,
+  LOG_MESSAGES,
+} from '@/auth/auth.constants';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly prisma: PrismaClient,
+    private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly cfgService: ConfigService<EnvConfig>,
+    private readonly mailer: MailerService,
     private readonly logger: LoggerService,
-    private readonly mailer: MailerService
+    private readonly cfgService: ConfigService<EnvConfig>
   ) {}
 
   private async generateAndStoreTokens(id: string) {
-    const accessToken = await this.jwtService.signAsync(
-      { id },
-      {
-        secret: this.cfgService.getOrThrow('ACCESS_JWT_SECRET'),
-        expiresIn: this.cfgService.getOrThrow('ACCESS_JWT_EXPIRE_IN'),
-      }
-    );
+    try {
+      const accessToken = await this.jwtService.signAsync(
+        { id },
+        {
+          secret: this.cfgService.getOrThrow('ACCESS_JWT_SECRET'),
+          expiresIn: this.cfgService.getOrThrow('ACCESS_JWT_EXPIRE_IN'),
+        }
+      );
 
-    const refreshToken = await this.jwtService.signAsync(
-      { id },
-      {
-        secret: this.cfgService.getOrThrow('REFRESH_JWT_SECRET'),
-        expiresIn: this.cfgService.getOrThrow('REFRESH_JWT_EXPIRE_IN'),
-      }
-    );
+      const refreshToken = await this.jwtService.signAsync(
+        { id },
+        {
+          secret: this.cfgService.getOrThrow('REFRESH_JWT_SECRET'),
+          expiresIn: this.cfgService.getOrThrow('REFRESH_JWT_EXPIRE_IN'),
+        }
+      );
 
-    await this.prisma.user.update({
-      where: { id },
-      data: { refreshToken },
-    });
+      await this.prisma.user.update({
+        where: { id },
+        data: { refreshToken },
+      });
 
-    return { accessToken, refreshToken };
+      this.logger.log(LOG_MESSAGES.tokensGenerated(id));
+
+      return { accessToken, refreshToken };
+    } catch (error) {
+      this.logger.error(LOG_MESSAGES.errorGeneratingTokens(id), error.stack);
+      throw new InternalServerErrorException(
+        EXCEPTION_MESSAGES.tokenGeneration
+      );
+    }
   }
 
   public async createUser({ email, password }: RegisterUserDto) {
@@ -56,16 +71,16 @@ export class AuthService {
     const protocol = this.cfgService.getOrThrow('PROTOCOL');
     const host = this.cfgService.getOrThrow('HOST');
     const port = this.cfgService.getOrThrow('PORT');
-    // TODO: Replace to real hash(v4) + redis
-    const verifyHash = await this.jwtService.signAsync(
-      {},
-      {
-        secret: this.cfgService.getOrThrow('VERIFY_SECRET'),
-        expiresIn: this.cfgService.getOrThrow('VERIFY_EXPIRE_IN'),
-      }
-    );
 
     try {
+      const verifyHash = await this.jwtService.signAsync(
+        {},
+        {
+          secret: this.cfgService.getOrThrow('VERIFY_SECRET'),
+          expiresIn: this.cfgService.getOrThrow('VERIFY_EXPIRE_IN'),
+        }
+      );
+
       const user = await this.prisma.user.create({
         data: {
           email,
@@ -73,110 +88,104 @@ export class AuthService {
           verifyHash,
         },
       });
-      this.logger.log(`User created with email: ${email}`);
+      this.logger.log(LOG_MESSAGES.userCreated(email));
 
-      const verificationLink = `${protocol}://${host}:${port}/api/auth/verify/${verifyHash}`;
+      const verificationLink = getVerifyEmailUrl(
+        protocol,
+        host,
+        port,
+        verifyHash
+      );
       this.mailer.sendVerificationEmail(email, verificationLink);
 
       return user;
     } catch (error) {
       if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
-        this.logger.warn(
-          `Attempt to create user with duplicate email: ${email}`
-        );
-        throw new HttpException(
-          'User with this email already exists',
-          HttpStatus.BAD_REQUEST
+        this.logger.warn(LOG_MESSAGES.duplicateEmail(email));
+        throw new BadRequestException(
+          EXCEPTION_MESSAGES.registrationAlreadyExists
         );
       }
-      this.logger.error(
-        `Error creating user with email: ${email}`,
-        error.stack
-      );
+      this.logger.error(LOG_MESSAGES.userCreationError(email), error.stack);
       throw error;
     }
   }
 
   public async login({ email, password }: LoginUserDto) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    let user: User | null;
 
-    if (!user) {
-      this.logger.warn(
-        `Failed login attempt: User with email ${email} not found.`
-      );
-      throw new HttpException(
-        'Email or password are incorrect',
-        HttpStatus.BAD_REQUEST
-      );
+    try {
+      user = await this.prisma.user.findUnique({ where: { email } });
+    } catch (error) {
+      this.logger.error(LOG_MESSAGES.errorLoggingIn(email), error.stack);
+      throw new InternalServerErrorException(EXCEPTION_MESSAGES.login);
+    }
+
+    if (!user || !password) {
+      this.logger.warn(LOG_MESSAGES.failedLogin(email));
+      throw new BadRequestException(EXCEPTION_MESSAGES.wrongCredentials);
     }
 
     if (!user.verified) {
-      this.logger.warn(
-        `Failed login attempt: User with email ${email} not verified.`
-      );
-      throw new HttpException('Email is not verified', HttpStatus.BAD_REQUEST);
+      this.logger.warn(LOG_MESSAGES.emailNotVerified(email));
+      throw new BadRequestException(EXCEPTION_MESSAGES.emailNotVerified);
     }
 
     if (!(await compare(password, user.passwordHash))) {
-      this.logger.warn(
-        `Failed login attempt: Incorrect password for email ${email}.`
-      );
-      throw new HttpException(
-        'Email or password are incorrect',
-        HttpStatus.BAD_REQUEST
-      );
+      this.logger.warn(LOG_MESSAGES.incorrectPassword(email));
+      throw new BadRequestException(EXCEPTION_MESSAGES.wrongCredentials);
     }
 
-    this.logger.log(`User ${email} logged in successfully.`);
+    this.logger.log(LOG_MESSAGES.userLoggedIn(email));
 
     return this.generateAndStoreTokens(user.id);
   }
 
-  public async authorize(payload: OAuthPayload) {
-    const { email } = payload;
+  public async authorize({ email }: OAuthPayload) {
+    let user: User;
+
     try {
-      const { id } = await this.prisma.user.upsert({
+      user = await this.prisma.user.upsert({
         where: { email },
         create: { email },
         update: {},
       });
-
-      this.logger.log(`User authorized with email: ${email}`);
-
-      return this.generateAndStoreTokens(id);
     } catch (error) {
-      this.logger.error(
-        `Error creating user with email: ${email}`,
-        error.stack
-      );
+      this.logger.error(LOG_MESSAGES.userCreationError(email), error.stack);
       throw error;
     }
+
+    this.logger.log(LOG_MESSAGES.userAuthorized(email));
+
+    return this.generateAndStoreTokens(user.id);
   }
 
   public async refreshToken(refreshToken: string) {
+    let payload: JwtPayload;
+
     try {
-      const { id } = await this.jwtService.verifyAsync<JwtPayload>(
-        refreshToken,
-        {
-          secret: this.cfgService.get('REFRESH_JWT_SECRET'),
-        }
-      );
-
-      this.logger.log(`Token refreshed for user with ID: ${id}`);
-      return this.generateAndStoreTokens(id);
+      payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
+        secret: this.cfgService.get('REFRESH_JWT_SECRET'),
+      });
     } catch (error) {
-      this.logger.error('Error refreshing token', error.stack);
-
+      this.logger.error(
+        LOG_MESSAGES.errorRefreshingToken(refreshToken),
+        error.stack
+      );
       throw new UnauthorizedException();
     }
+
+    this.logger.log(LOG_MESSAGES.tokenRefreshed(payload.id));
+
+    return this.generateAndStoreTokens(payload.id);
   }
 
   public async verifyEmail(verifyHash: string) {
-    const user = await this.prisma.user.findFirst({ where: { verifyHash } });
-    if (!user)
-      throw new HttpException('Wrong verify hash', HttpStatus.BAD_REQUEST);
-
     try {
+      const user = await this.prisma.user.findFirst({ where: { verifyHash } });
+
+      if (!user) throw new BadRequestException(EXCEPTION_MESSAGES.userNotExist);
+
       await this.jwtService.verifyAsync(verifyHash, {
         secret: this.cfgService.getOrThrow('VERIFY_SECRET'),
       });
@@ -187,8 +196,11 @@ export class AuthService {
           verifyHash: null,
         },
       });
-    } catch {
-      throw new HttpException('Verify hash is expired', HttpStatus.BAD_REQUEST);
+    } catch (error) {
+      if (!(error instanceof BadRequestException)) {
+        this.logger.warn(LOG_MESSAGES.verifyEmailExpired(verifyHash));
+      }
+      throw new BadRequestException('Verify hash is expired');
     }
   }
 
