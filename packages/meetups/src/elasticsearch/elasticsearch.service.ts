@@ -3,6 +3,10 @@ import { Client } from '@elastic/elasticsearch';
 import { ConfigService } from '@nestjs/config';
 import { EnvConfig } from '@/common/types';
 import { Meetup } from '@prisma/client';
+import {
+  elasticSearchConfig,
+  INDEX,
+} from '@/elasticsearch/elastisearch.constants';
 
 @Injectable()
 export class ElasticsearchService implements OnModuleInit {
@@ -13,61 +17,16 @@ export class ElasticsearchService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    const indexExists = await this.client.indices.exists({ index: 'meetups' });
+    const indexExists = await this.client.indices.exists({ index: INDEX });
 
     if (indexExists.body) return;
 
-    await this.client.indices.create({
-      index: 'meetups',
-      body: {
-        settings: {
-          analysis: {
-            analyzer: {
-              morphology_analyzer: {
-                type: 'custom',
-                tokenizer: 'standard',
-                filter: ['lowercase', 'hunspell_ru'],
-              },
-            },
-            filter: {
-              hunspell_ru: {
-                type: 'hunspell',
-                locale: 'ru_RU',
-                dictionary: 'ru_RU',
-                dedup: true,
-              },
-            },
-          },
-        },
-        mappings: {
-          dynamic_templates: [
-            {
-              strings: {
-                match_mapping_type: 'string',
-                mapping: {
-                  type: 'text',
-                  fields: {
-                    keyword: {
-                      type: 'keyword',
-                      ignore_above: 256,
-                    },
-                    morphology: {
-                      type: 'text',
-                      analyzer: 'morphology_analyzer',
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        },
-      },
-    });
+    await this.client.indices.create(elasticSearchConfig);
   }
 
   async indexMeetup(meetup: Meetup) {
     await this.client.index({
-      index: 'meetups',
+      index: INDEX,
       id: meetup.id,
       body: meetup,
     });
@@ -75,7 +34,7 @@ export class ElasticsearchService implements OnModuleInit {
 
   async searchMeetups(query: string) {
     const response = await this.client.search({
-      index: 'meetups',
+      index: INDEX,
       body: {
         query: {
           multi_match: {

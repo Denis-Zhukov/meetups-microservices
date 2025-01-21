@@ -6,6 +6,8 @@ COPY ./packages/authorization .
 
 RUN yarn install
 
+RUN npx prisma generate
+
 RUN yarn build
 
 FROM node:20-slim AS production

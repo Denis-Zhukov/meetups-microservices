@@ -1,4 +1,10 @@
-import { IsLatitude, IsLongitude, IsOptional, IsNumber } from 'class-validator';
+import {
+  IsLatitude,
+  IsLongitude,
+  IsOptional,
+  IsNumber,
+  IsPositive,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class FilterMeetupsDto {
@@ -12,6 +18,7 @@ export class FilterMeetupsDto {
 
   @Transform(({ value }) => parseInt(value))
   @IsNumber()
+  @IsPositive()
   @IsOptional()
   radius: number = 100;
 }

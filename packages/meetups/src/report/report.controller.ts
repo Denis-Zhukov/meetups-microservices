@@ -1,7 +1,7 @@
 import { Controller, Get, Res, UseGuards } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { Response } from 'express';
-import { AuthGuard } from '@/common/guards/rabbitmq-auth.guard';
+import { AuthGuard } from '@/common/guards/auth.guard';
 
 @UseGuards(AuthGuard)
 @Controller('report')

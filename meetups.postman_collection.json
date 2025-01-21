@@ -1,0 +1,810 @@
+{
+	"info": {
+		"_postman_id": "d3a9fe93-985f-446b-a081-f8086de8f4c3",
+		"name": "meetups",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20765824"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"Reyal.steam.vip@gmail.com\",\r\n    \"password\": \"Aboba1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{AUTH_BASE_URL}}/api/auth/register",
+							"host": [
+								"{{AUTH_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"ACCESS_TOKEN\", pm.response.json().accessToken);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"Reyal.steam.vip@gmail.com\",\r\n    \"password\": \"Aboba1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{AUTH_BASE_URL}}/api/auth/login",
+							"host": [
+								"{{AUTH_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "refresh",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"ACCESS_TOKEN\", pm.response.json().accessToken);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"REyal.steam.vip@gmail.com\",\r\n    \"password\": \"Aboba1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{AUTH_BASE_URL}}/api/auth/refresh",
+							"host": [
+								"{{AUTH_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "user",
+			"item": [
+				{
+					"name": "upload avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/Hachiko/Desktop/00135-3880581354.png"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{AUTH_BASE_URL}}/api/user/avatar",
+							"host": [
+								"{{AUTH_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"avatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "download avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{AUTH_BASE_URL}}/api/user/avatar/eec645ac-d940-4613-b274-a786f703e40d-00135-3880581354.png",
+							"host": [
+								"{{AUTH_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"avatar",
+								"eec645ac-d940-4613-b274-a786f703e40d-00135-3880581354.png"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete avatar",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{AUTH_BASE_URL}}/api/user/avatar",
+							"host": [
+								"{{AUTH_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"avatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "set user data",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{AUTH_BASE_URL}}/api/user",
+							"host": [
+								"{{AUTH_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{AUTH_BASE_URL}}/api/user",
+							"host": [
+								"{{AUTH_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "meetup",
+			"item": [
+				{
+					"name": "get list by radius",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/meetup/radius?latitude=3.1005&longitude=3.252",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"meetup",
+								"radius"
+							],
+							"query": [
+								{
+									"key": "latitude",
+									"value": "3.1005"
+								},
+								{
+									"key": "longitude",
+									"value": "3.252"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get by text",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/meetup/search?q=Пить пиво",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"meetup",
+								"search"
+							],
+							"query": [
+								{
+									"key": "take",
+									"value": "5",
+									"disabled": true
+								},
+								{
+									"key": "q",
+									"value": "Пить пиво"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get one",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/meetup/cm65mfscc0000v1dkm9pqza5b",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"meetup",
+								"cm65mfscc0000v1dkm9pqza5b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get few meetups",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/meetup?skip=0&take=5",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"meetup"
+							],
+							"query": [
+								{
+									"key": "skip",
+									"value": "0"
+								},
+								{
+									"key": "take",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add meetup",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"Пить пиво\",\r\n    \"description\":\"Пить много много пива\",\r\n    \"tags\":[\"Подпивасники\"],\r\n    \"place\":\"Бар\",\r\n    \"start\":\"Mon Jan 20 2025 00:05:32 GMT+0300 (Moscow Standard Time)\",\r\n    \"end\":\"Mon Jan 25 2025 00:05:32 GMT+0300 (Moscow Standard Time)\",\r\n    \"location\": {\r\n        \"latitude\": 3.1,\r\n        \"longitude\": 3.252\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/meetup",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"meetup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update meetup",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"location\": {\r\n        \"latitude\": 43,\r\n        \"longitude\": 51\r\n    }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/meetup/cm65mfscc0000v1dkm9pqza5b",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"meetup",
+								"cm65mfscc0000v1dkm9pqza5b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete meetup",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/meetup/cm646fzdb0000v1b8odu2ved9",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"meetup",
+								"cm646fzdb0000v1b8odu2ved9"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "reports",
+			"item": [
+				{
+					"name": "csv",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/report/csv",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"report",
+								"csv"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "pdf",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/report/pdf",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"report",
+								"pdf"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "invitation",
+			"item": [
+				{
+					"name": "add users to meetup",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userIds\": [\"cm65gtje20000lf01tzzbv5h1\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/invitation/cm65p7ndt0000v1dck2ppudvb/invite",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"invitation",
+								"cm65p7ndt0000v1dck2ppudvb",
+								"invite"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete users from meetup",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userIds\": [\"cm65odkmp0000mf01hun97csd\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/invitation/cm65p7ndt0000v1dck2ppudvb/remove-invitees",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"invitation",
+								"cm65p7ndt0000v1dck2ppudvb",
+								"remove-invitees"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "accept invation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userIds\": [\"cm65odkmp0000mf01hun97csd\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/invitation/cm65p7ndt0000v1dck2ppudvb/accept",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"invitation",
+								"cm65p7ndt0000v1dck2ppudvb",
+								"accept"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "decline invation",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{ACCESS_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userIds\": [\"cm65odkmp0000mf01hun97csd\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MEETUP_BASE_URL}}/api/invitation/cm65p7ndt0000v1dck2ppudvb/decline",
+							"host": [
+								"{{MEETUP_BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"invitation",
+								"cm65p7ndt0000v1dck2ppudvb",
+								"decline"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "AUTH_BASE_URL",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "MEETUP_BASE_URL",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "ACCESS_TOKEN",
+			"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzM1ODUxNzYwLCJleHAiOjE3MzU4NTIzNjB9.dn_isn1SFmzeLPCu6aFX7d8mJ2bc2ertiCkBm0WVhXg",
+			"type": "string"
+		}
+	]
+}

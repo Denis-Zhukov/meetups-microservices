@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { LoggerService } from './logger.service';
 import { ConfigService } from '@nestjs/config';
 import { createLogger, format, Logger, transports } from 'winston';
 import { ElasticsearchTransport } from 'winston-elasticsearch';
 import { EnvConfig } from '@/common/types';
+import { INDEX } from '@/logger/logger.constants';
 
+@Global()
 @Module({
   imports: [],
   providers: [
@@ -16,7 +18,7 @@ import { EnvConfig } from '@/common/types';
           clientOpts: {
             node: cfgService.getOrThrow('ELASTIC_HOST'),
           },
-          indexPrefix: 'meetup-logs',
+          indexPrefix: INDEX,
         });
 
         return createLogger({

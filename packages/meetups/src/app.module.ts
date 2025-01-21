@@ -8,6 +8,7 @@ import { InvitationModule } from './invitation/invitation.module';
 import { ReportModule } from './report/report.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
+import { LoggerModule } from '@/logger/logger.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ElasticsearchModule } from './elasticsearch/elasticsearch.module';
     ReportModule,
     PrismaModule,
     ElasticsearchModule,
+    LoggerModule,
   ],
   controllers: [],
   providers: [],
