@@ -1,4 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
@@ -165,6 +169,27 @@ export class UserService {
       }
       this.logger.error(LOG_MESSAGES.userDeleteFailed(id), error.stack);
       throw error;
+    }
+  }
+
+  async allUsersExist(users: string[]): Promise<boolean> {
+    try {
+      console.log('users', users);
+      const usersInDb = await this.prisma.user.findMany({
+        where: {
+          id: {
+            in: users,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+      console.log('usersInDb', usersInDb);
+      return usersInDb.length === users?.length;
+    } catch (error) {
+      this.logger.error('Error checking if users exist', error.stack);
+      throw new InternalServerErrorException('Error checking if users exist');
     }
   }
 }

@@ -6,19 +6,28 @@ import * as PDFDocument from 'pdfkit';
 import * as fs from 'fs';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { Meetup } from '@prisma/client';
 
 @Injectable()
 export class ReportService {
+  private readonly fontPath = './fonts/Roboto-Regular.ttf';
+
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getAvailableMeetups() {
-    return this.prisma.meetup.findMany({
-      where: {
-        start: {
-          gte: new Date(1990, 0, 5),
-        },
-      },
-    });
+  private getAvailableMeetups() {
+    return this.prisma.$queryRaw<
+      Array<Meetup & { longitude: number; latitude: number }>
+    >`
+          SELECT 
+                id, creator_id, name, description, tags, place, start, "end", 
+                created_at AS "createdAt",
+                updated_at AS "updatedAt",
+                creator_id AS "creatorId",
+                ST_X(location::geometry) AS longitude,  
+                ST_Y(location::geometry) AS latitude
+          FROM meetups
+          WHERE start >= ${new Date(1999, 0, 1)}
+        `;
   }
 
   private formatDate(date: Date): string {
@@ -32,9 +41,12 @@ export class ReportService {
       header: [
         { id: 'name', title: 'Name' },
         { id: 'description', title: 'Description' },
+        { id: 'tags', title: 'Tags' },
         { id: 'place', title: 'Place' },
         { id: 'start', title: 'Start Date' },
         { id: 'end', title: 'End Date' },
+        { id: 'longitude', title: 'Longitude' },
+        { id: 'latitude', title: 'Latitude' },
       ],
     });
 
@@ -45,9 +57,12 @@ export class ReportService {
         meetups.map((meetup) => ({
           name: meetup.name,
           description: meetup.description,
+          tags: `[${meetup.tags}]`,
           place: meetup.place,
           start: this.formatDate(meetup.start),
           end: this.formatDate(meetup.end),
+          longitude: meetup.longitude,
+          latitude: meetup.latitude,
         }))
       )
     );
@@ -60,14 +75,12 @@ export class ReportService {
 
     const doc = new PDFDocument();
 
-    // Подключаем кастомный шрифт
-    const fontPath = './fonts/Roboto-Regular.ttf';
-    if (!fs.existsSync(fontPath)) {
+    if (!fs.existsSync(this.fontPath)) {
       throw new Error(
         'Шрифт не найден. Убедитесь, что путь к шрифту указан верно.'
       );
     }
-    doc.registerFont('Roboto', fontPath);
+    doc.registerFont('Roboto', this.fontPath);
 
     doc.pipe(outputStream);
 
@@ -83,6 +96,8 @@ export class ReportService {
       doc.text(`Место: ${meetup.place}`);
       doc.text(`Начало: ${this.formatDate(meetup.start)}`);
       doc.text(`Конец: ${this.formatDate(meetup.end)}`);
+      doc.text(`Долгота: ${meetup.longitude}`);
+      doc.text(`Широта: ${meetup.latitude}`);
       doc.moveDown();
     });
 

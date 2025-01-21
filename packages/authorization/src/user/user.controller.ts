@@ -18,6 +18,8 @@ import { User } from '@/common/decorators/user.decarator';
 import { JwtPayload } from '@/common/types';
 import { Response } from 'express';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { AllUsersExistDto } from '@/user/dto/all-users-exist.dto';
 
 @Controller('user')
 export class UserController {
@@ -67,5 +69,11 @@ export class UserController {
   @Delete()
   deleteUser(@User() user: JwtPayload) {
     return this.userService.deleteUser(user.id);
+  }
+
+  @MessagePattern('all-users-exist')
+  allUsersExist(@Payload() data: AllUsersExistDto) {
+    console.log(data);
+    return this.userService.allUsersExist(data.users);
   }
 }
